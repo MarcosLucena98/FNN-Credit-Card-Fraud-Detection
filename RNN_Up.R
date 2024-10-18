@@ -13,6 +13,86 @@ data <- read.csv(file = "creditcard.csv", header = TRUE)
 str(data)
 summary(data)
 
+
+# Gerar um boxplot para todas as variáveis numéricas
+library(reshape2)
+data_long <- melt(data, id.vars = c("Class", "Time", "Amount"))
+
+# Criando o boxplot aprimorado com ggplot2
+jpeg("Distribuição_Variavel.jpg", width = 8, height = 6, units = "in", res = 600)
+ggplot(data_long, aes(x = variable, y = value, fill = variable)) +
+  geom_boxplot(outlier.colour = "red", outlier.size = 2, alpha = 0.7) +
+  labs(
+    title = "Distribuição das Variáveis Numéricas",
+    x = "Variáveis",
+    y = "Valores"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),  # Rotaciona os rótulos do eixo X
+    legend.position = "none"  # Remove a legenda
+  )
+dev.off()
+
+# Calculando a média de Amount
+mean_amount <- mean(data$Amount, na.rm = TRUE)
+
+# Exemplo de gráfico de dispersão entre Time e Amount
+jpeg("Distribuição_Time_Amount_mean.jpg", width = 8, height = 6, units = "in", res = 600)
+ggplot(data, aes(x = Time, y = Amount)) +
+  geom_point(alpha = 0.5, color = "blue") +
+  geom_hline(yintercept = mean_amount, linetype = "dashed", color = "red", size = 1) +
+  labs(
+    title = "Dispersão entre Tempo e Valor das Transações",
+    x = "Tempo (segundos desde a primeira transação)",
+    y = "Valor da Transação (Amount)"
+  ) +
+  annotate("text", x = max(data$Time), y = mean_amount, label = paste("Média =", round(mean_amount, 2)), 
+           hjust = 1.1, vjust = -0.5, color = "red") +
+  theme_minimal()
+dev.off()
+
+# Gráfico de linha para visualizar a variação de Amount ao longo do Time
+jpeg("TRansação_Ao_Tempo.jpg", width = 8, height = 6, units = "in", res = 600)
+ggplot(data, aes(x = Time, y = Amount)) +
+  geom_line(alpha = 0.7, color = "darkgreen") +
+  labs(
+    title = "Variação do Valor das Transações ao Longo do Tempo",
+    x = "Tempo (segundos desde a primeira transação)",
+    y = "Valor da Transação (Amount)"
+  ) +
+  theme_minimal()
+dev.off()
+
+
+# Filtrando apenas as transações com fraude (Class = 1)
+fraude_data <- subset(data, Class == 1)
+
+# Calculando a média do valor das transações fraudulentas
+mean_fraude_amount <- mean(fraude_data$Amount, na.rm = TRUE)
+
+# Visualizando um resumo das transações fraudulentas
+summary(fraude_data$Amount)
+
+jpeg("Dispersão_Fraude.jpg", width = 8, height = 6, units = "in", res = 600)
+# Criando o gráfico de dispersão com a linha de média
+ggplot(fraude_data, aes(x = Time, y = Amount)) +
+  geom_point(alpha = 0.5, color = "red") +
+  geom_hline(yintercept = mean_fraude_amount, linetype = "dashed", color = "blue", size = 1) +
+  labs(
+    title = "Dispersão de Transações Fraudulentas com Linha de Média",
+    x = "Tempo (segundos desde a primeira transação)",
+    y = "Valor da Transação (Amount)"
+  ) +
+  annotate(
+    "text", 
+    x = max(fraude_data$Time) * 0.8, y = mean_fraude_amount + 50, 
+    label = paste("Média =", round(mean_fraude_amount, 2)), 
+    hjust = 0, vjust = -0.5, color = "blue", size = 5, fontface = "bold"
+  ) +
+  theme_minimal()
+dev.off()
+
 # Normalização dos dados retirando a target Class
 data_normalized <- data %>% 
   mutate_at(vars(-Class), scale)
